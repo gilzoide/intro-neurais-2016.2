@@ -1,0 +1,6 @@
+# backups de texto
+*~
+*.swp
+
+# caches dos pitão
+__pycache__/
