@@ -2,7 +2,7 @@
 
 ## Exercício 1: Uma rede que descobre se é V ou Λ
 
-from functools import reduce
+from random import uniform as rand
 
 def sign (x):
     """Função que pega sinal"""
@@ -11,15 +11,20 @@ def sign (x):
 
 def lêTeste (nomeArquivo):
     with open (nomeArquivo, 'r') as arquivo:
-        return int (arquivo.readline ()), [int (num) for num in arquivo.read ().split ()]
+        esperado = int (arquivo.readline ())
+        valores = [int (num) for num in arquivo.read ().split ()]
+        valores.append (1) # adiciona o viés
+        return esperado, valores
 
 def lêEntrada (nomeArquivo):
     with open (nomeArquivo, 'r') as arquivo:
-        return [int (num) for num in arquivo.read ().split ()]
+        valores = [int (num) for num in arquivo.read ().split ()]
+        valores.append (1) # adiciona o viés
+        return valores
 
 class Adaline:
     """Rede adaline, que aprende e deduz =P"""
-    def __init__ (self, taxaAprendizado = 0.5):
+    def __init__ (self, taxaAprendizado = 0.025):
         self.taxaAprendizado = taxaAprendizado
 
     def treina (self, nomesArquivos):
@@ -32,7 +37,7 @@ class Adaline:
             respostaEsperada.append (resp)
             entrada.append (entr)
 
-        self.pesos = [0] * len (entrada[0])
+        self.pesos = [rand (-1, 1) for x in entrada[0]]
 
         # loop dos ciclos de treinamento
         cabou = False
@@ -44,7 +49,7 @@ class Adaline:
                 # resultado é a soma dos peso * entrada
                 # resposta deu diferente: ajusta pesos e vai ter que fazer denovo
                 resultado = self.reconhece (entradaAtual)
-                if resultado != s_out:
+                if sign (resultado) != s_out:
                     cabou = False
                     for i in range (len (self.pesos)):
                         self.pesos[i] += self.taxaAprendizado * (s_out - resultado) * entradaAtual[i]
@@ -56,14 +61,14 @@ class Adaline:
         resultado = 0
         for i, x in enumerate (entrada):
             resultado += self.pesos[i] * x
-        return sign (resultado)
+        return resultado
 
 
 
 def main ():
     A = Adaline ()
     A.treina (['treino1.txt', 'treino2.txt'])
-    print (A.reconhece (lêEntrada ('teste2.txt')))
+    print (sign (A.reconhece (lêEntrada ('teste3.txt'))))
 
 if __name__ == '__main__':
     main ()
