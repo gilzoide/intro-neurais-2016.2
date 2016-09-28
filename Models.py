@@ -4,10 +4,11 @@ Collection of Neural Network Models
 
 import numpy as np
 
-from keras.layers import Dense
+from keras.layers import Dense, Input
 from keras.models import Sequential
 from keras.optimizers import SGD
 from keras.utils.np_utils import to_categorical
+from keras.models import Model
 
 """
 dataset models
@@ -154,3 +155,50 @@ class AdalineNetwork():
         for x, y in zip(data, labels):
             error = y - self.predict(x)
             print("Error: " + str(error))
+
+class FullyConnectedAutoEncoder(object):
+    def __init__(self):
+
+        # this is the size of our encoded representations
+        encoding_dim = 4  # 32 floats -> compression of factor 24.5, assuming the input is 784 floats
+
+        # this is our input placeholder
+        input_img = Input(shape=(784,))
+        # "encoded" is the encoded representation of the input
+        encoded = Dense(encoding_dim, activation='relu')(input_img)
+        # "decoded" is the lossy reconstruction of the input
+        decoded = Dense(784, activation='sigmoid')(encoded)
+
+        # this model maps an input to its reconstruction
+        self.model = Model(input=input_img, output=decoded)
+
+         # stochastic gradient descent with paramenters + objective/loss layer
+        #sgd = SGD(lr=learning_rate, momentum=momentum)
+        self.model.compile(optimizer='adadelta', loss='binary_crossentropy')
+
+    def train(self,
+              data,
+              batch_size=1,
+              epochs=50):
+
+        self.model.fit(
+                       data, data,
+                       nb_epoch=epochs,
+                       batch_size=batch_size,
+                       shuffle=True,
+                       verbose=False)
+
+        # return (epochs, validation_split, learning_rate, momentum,
+        #         history.history['loss'][-1], history.history['val_loss'][-1])
+
+    def save_model(self, model_file):
+        self.model.save_weights(model_file)
+
+    def load_model(self, model_file):
+        self.model.load_weights(model_file)
+
+    def print_weights(self):
+        for layer in self.model.layers:
+            print(layer.get_weights())
+            print('----------------------')
+

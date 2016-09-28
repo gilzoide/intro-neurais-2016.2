@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, '../')
+
 from Models import (SeedsClassificationDataset, Test1RegressionDataset,
                     ClassificationFullyConnectedNeuralNetwork,
                     RegressionFullyConnectedNeuralNetwork)
