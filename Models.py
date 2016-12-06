@@ -27,6 +27,21 @@ class SeedsClassificationDataset():
         )
         return dataset
 
+class IrisClassificationDataset():
+    @staticmethod
+    def load_data(path):
+        attributes = np.loadtxt(path, usecols=[0,1,2,3], delimiter=',')
+        labels = np.loadtxt(path, usecols=[4], dtype=np.str, delimiter=',')
+
+        dataset = {}
+        dataset['data'] = attributes
+
+        # one hot encode the array of *string* labels (keras requires numbers)
+        uniques, ids = np.unique(labels, return_inverse=True)
+        dataset['labels'] = to_categorical(ids, len(uniques))
+
+        return dataset
+
 
 class Test1RegressionDataset():
     @staticmethod
@@ -57,12 +72,12 @@ class FullyConnectedNeuralNetwork(object):
         self.model = Sequential()
 
         # defines input and first hidden layer
-        self.model.add(Dense(5, input_dim=input_dim, activation='relu',
+        self.model.add(Dense(3, input_dim=input_dim, activation='relu',
                              init='lecun_uniform'))
 
         # optional second hidden layer
         if (use_2_hidden_layers):
-            self.model.add(Dense(5, activation='relu', init='lecun_uniform'))
+            self.model.add(Dense(3, activation='relu', init='lecun_uniform'))
 
         # output layer, its size is the number of classes
         # softmax activation guarantees the result is P(y|x)
@@ -87,8 +102,8 @@ class FullyConnectedNeuralNetwork(object):
                        nb_epoch=epochs,
                        batch_size=batch_size,
                        shuffle=True,
-                       validation_split=validation_split,
-                       verbose=False)
+                       validation_split=validation_split
+        )
 
         return (epochs, validation_split, learning_rate, momentum,
                 history.history['loss'][-1], history.history['val_loss'][-1])
@@ -107,9 +122,10 @@ class FullyConnectedNeuralNetwork(object):
 
 class ClassificationFullyConnectedNeuralNetwork(FullyConnectedNeuralNetwork):
     def __init__(self,
-                 use_2_hidden_layers=False):
+                 use_2_hidden_layers=False,
+                 input_dim=7):
         super(ClassificationFullyConnectedNeuralNetwork, self).__init__(
-           7,
+           input_dim=input_dim,
            output_dim=3,
            output_activation='softmax',
            loss_layer='categorical_crossentropy'
@@ -118,9 +134,10 @@ class ClassificationFullyConnectedNeuralNetwork(FullyConnectedNeuralNetwork):
 
 class RegressionFullyConnectedNeuralNetwork(FullyConnectedNeuralNetwork):
     def __init__(self,
-                 use_2_hidden_layers=False):
+                 use_2_hidden_layers=False,
+                 input_dim=14):
         super(RegressionFullyConnectedNeuralNetwork, self).__init__(
-            14,
+            input_dim=input_dim,
             output_dim=1,
             output_activation='sigmoid',
             loss_layer='mean_squared_error'
@@ -155,50 +172,3 @@ class AdalineNetwork():
         for x, y in zip(data, labels):
             error = y - self.predict(x)
             print("Error: " + str(error))
-
-class FullyConnectedAutoEncoder(object):
-    def __init__(self):
-
-        # this is the size of our encoded representations
-        encoding_dim = 4  # 32 floats -> compression of factor 24.5, assuming the input is 784 floats
-
-        # this is our input placeholder
-        input_img = Input(shape=(784,))
-        # "encoded" is the encoded representation of the input
-        encoded = Dense(encoding_dim, activation='relu')(input_img)
-        # "decoded" is the lossy reconstruction of the input
-        decoded = Dense(784, activation='sigmoid')(encoded)
-
-        # this model maps an input to its reconstruction
-        self.model = Model(input=input_img, output=decoded)
-
-         # stochastic gradient descent with paramenters + objective/loss layer
-        #sgd = SGD(lr=learning_rate, momentum=momentum)
-        self.model.compile(optimizer='adadelta', loss='binary_crossentropy')
-
-    def train(self,
-              data,
-              batch_size=1,
-              epochs=50):
-
-        self.model.fit(
-                       data, data,
-                       nb_epoch=epochs,
-                       batch_size=batch_size,
-                       shuffle=True,
-                       verbose=False)
-
-        # return (epochs, validation_split, learning_rate, momentum,
-        #         history.history['loss'][-1], history.history['val_loss'][-1])
-
-    def save_model(self, model_file):
-        self.model.save_weights(model_file)
-
-    def load_model(self, model_file):
-        self.model.load_weights(model_file)
-
-    def print_weights(self):
-        for layer in self.model.layers:
-            print(layer.get_weights())
-            print('----------------------')
-

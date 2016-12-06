@@ -2,5 +2,12 @@
 *~
 *.swp
 
+# macOS
+*.DS_Store
+
 # caches dos pitão
 __pycache__/
+*.pyc
+
+*.csv
+*.zip
